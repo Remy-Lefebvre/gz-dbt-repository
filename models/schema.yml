@@ -1,18 +1,56 @@
+# schema.yml
 version: 2
 
 sources:
   - name: raw
-    database: test-technique-ta-484208        # your GCP project ID
-    schema: gz_raw_data                       # or use {{ target.schema }} for environment-safe naming
-    loader: bigquery                          # identifies how data is loaded (fivetran, airbyte, etc.)
-    freshness:
-      warn_after: {count: 12, period: hour}   # warn if data older than 12 hours
-      error_after: {count: 24, period: hour}  # error if data older than 24 hours
+    database: test-technique-ta-484208
+    schema: gz_raw_data
+    loader: bigquery
+  
     tables:
       - name: sales
         identifier: raw_gz_sales
-        loaded_at_field: updated_at            # used for freshness checks
+        description: sales of Greenweez / we have one row per product_id found in each orders_id
+        
+        columns:
+          - name: date_date
+            description: date of purchase
+          - name: orders_id
+            description: foreign key to ship
+          - name: pdt_id
+            description: foreign key to product
+          - name: revenue
+            description: the amount paid by the customer to purchase the product. revenue = quantity * selling_price
+          - name: quantity
+            description: the quantity of products purchased for a given order
+        tests:
+          - unique:
+              column_name: "(orders_id || '-' || pdt_id)"
+                      
       - name: product
         identifier: raw_gz_product
+        description: products of Greenweez
+        columns:
+          - name: products_id
+            description: Primary key
+            tests:
+            - unique
+            - not_null              
+          - name: purchase_price
+            description: the purchase price of the product
+
       - name: ship
         identifier: raw_gz_ship
+        description: shipping data for Greenweez orders
+        columns:
+          - name: orders_id
+            description: Primary key
+            tests:
+            - unique
+            - not_null             
+          - name: shipping_fee
+            description: the price the customer pays for shipping
+          - name: log_cost
+            description: the cost of preparing the parcel in the distribution centre/warehouse
+          - name: ship_cost
+            description: shipping cost paid by Greenweez to the carrier/logistics provider
