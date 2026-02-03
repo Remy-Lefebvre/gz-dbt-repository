@@ -4,6 +4,9 @@ version: '1.0.0'
 config-version: 2
 profile: 'default'
 
+flags:
+    bigquery_use_batch_source_freshness: true
+
 models:
   my_new_project:
     +materialized: view
